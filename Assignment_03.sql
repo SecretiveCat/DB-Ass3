@@ -110,12 +110,31 @@ execute function update_orders_total_trigger();
 select order_id, total_amount from orders where order_id = 3;
 
 
----Task 5,
+---Task 5, створення тригеру, який записує дані в таблицю order_log
 
 
+CREATE OR REPLACE function log_new_order()
+RETURNS TRIGGER
+AS $$
+BEGIN
+	insert into order_log (order_id, customer_id, action, log_date)
+	values (NEW.order_id, NEW.customer_id, 'NEW_ORDER', CURRENT_TIMESTAMP);
+	
+	return null;
+END;
+$$ LANGUAGE plpgsql;
 
 
+create trigger t_log_new_order
+after insert on orders
+for each row
+execute function log_new_order();
 
+
+insert into orders (customer_id, order_date) 
+values (1, CURRENT_DATE);
+
+select * from order_log;
 
 
 
