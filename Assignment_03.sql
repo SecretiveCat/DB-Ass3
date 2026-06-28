@@ -47,6 +47,9 @@ order by order_id desc
 limit 5;
 
 
+
+---Task 3, створення процедури
+
 create or replace procedure add_product_to_order(
     p_order_id int,
     p_product_id int,
@@ -73,7 +76,7 @@ end;
 $$;
 
 
-call add_product_to_order(3, 3, 10);
+call add_product_to_order(3, 1, 1);
 
 
 select * from order_items 
@@ -82,6 +85,36 @@ where order_id = 3;
 select product_id, stock_quantity 
 from products 
 where product_id = 3;
+
+
+
+---Task 4, створення тригеру, використовуючи першу функцію
+
+CREATE OR REPLACE function update_orders_total_trigger()
+RETURNS TRIGGER
+AS $$
+BEGIN
+	update orders
+	set total_amount = calculate_order_total(coalesce(NEW.order_id, OLD.order_id))
+	where order_id = coalesce(NEW.order_id, OLD.order_id);
+	return null;
+END;
+$$ LANGUAGE plpgsql;
+
+create trigger t_update_orders_total
+after insert or update or delete on order_items
+for each row
+execute function update_orders_total_trigger();
+
+
+select order_id, total_amount from orders where order_id = 3;
+
+
+---Task 5,
+
+
+
+
 
 
 
